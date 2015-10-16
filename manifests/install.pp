@@ -13,8 +13,16 @@ class consul::install {
     }
   }
 
+  ensure_resource(file, $consul::bin_dir)
+
   case $consul::install_method {
     'url': {
+      if $::kernel == 'windows' {
+        file { $consul::params::base_dir:
+          ensure => directory
+        }
+      }
+
       staging::file { 'consul.zip':
         source => $consul::real_download_url
       } ->

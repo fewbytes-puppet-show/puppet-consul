@@ -16,54 +16,75 @@ class consul::params {
   $ui_download_extension = 'zip'
   $version               = '0.5.2'
 
-  case $::architecture {
-    'x86_64', 'amd64': { $arch = 'amd64' }
-    'i386':            { $arch = '386'   }
-    default:           {
-      fail("Unsupported kernel architecture: ${::architecture}")
+  if $::kernel == 'windows' {
+    # only 32bit builds are available for windows
+    $arch = '386'
+    $base_dir = 'C:\Program Files\Consul'
+    $bin_dir = 'C:\Program Files\Consul\bin'
+    $config_dir = 'C:\Program Files\Consul\etc'
+  } else {
+    $bin_dir = '/usr/local/bin'
+    $config_dir = '/etc/consul'
+
+    case $::architecture {
+      'x86_64', 'amd64': { $arch = 'amd64' }
+      'i386':            { $arch = '386'   }
+      default:           {
+        fail("Unsupported kernel architecture: ${::architecture}")
+      }
     }
   }
 
   $os = downcase($::kernel)
 
-  if $::operatingsystem == 'Ubuntu' {
-    if versioncmp($::operatingsystemrelease, '8.04') < 1 {
-      $init_style = 'debian'
-    } elsif versioncmp($::operatingsystemrelease, '15.04') < 0 {
-      $init_style = 'upstart'
-    } else {
+  case $::operatingsystem {
+    'Ubuntu' : {
+      if versioncmp($::operatingsystemrelease, '8.04') < 1 {
+        $init_style = 'debian'
+      } elsif versioncmp($::operatingsystemrelease, '15.04') < 0 {
+        $init_style = 'upstart'
+      } else {
+        $init_style = 'systemd'
+      }
+    }
+    /Scientific|CentOS|RedHat|OracleLinux/: {
+      if versioncmp($::operatingsystemrelease, '7.0') < 0 {
+        $init_style = 'sysv'
+      } else {
+        $init_style  = 'systemd'
+      }
+    }
+    'Fedora' : {
+      if versioncmp($::operatingsystemrelease, '12') < 0 {
+        $init_style = 'sysv'
+      } else {
+        $init_style = 'systemd'
+      }
+    }
+    'Debian' : {
+      if versioncmp($::operatingsystemrelease, '8.0') < 0 {
+        $init_style = 'debian'
+      } else {
+        $init_style = 'systemd'
+      }
+    }
+    'Archlinux' : {
       $init_style = 'systemd'
     }
-  } elsif $::operatingsystem =~ /Scientific|CentOS|RedHat|OracleLinux/ {
-    if versioncmp($::operatingsystemrelease, '7.0') < 0 {
+    'SLES' : {
+      $init_style = 'sles'
+    }
+    'Darwin' : {
+      $init_style = 'launchd'
+    }
+    'Amazon' : {
       $init_style = 'sysv'
-    } else {
-      $init_style  = 'systemd'
     }
-  } elsif $::operatingsystem == 'Fedora' {
-    if versioncmp($::operatingsystemrelease, '12') < 0 {
-      $init_style = 'sysv'
-    } else {
-      $init_style = 'systemd'
+    'windows' : {
+      $init_style = 'windows'
     }
-  } elsif $::operatingsystem == 'Debian' {
-    if versioncmp($::operatingsystemrelease, '8.0') < 0 {
-      $init_style = 'debian'
-    } else {
-      $init_style = 'systemd'
+    default : {
+      fail('Unsupported OS')
     }
-  } elsif $::operatingsystem == 'Archlinux' {
-    $init_style = 'systemd'
-  } elsif $::operatingsystem == 'SLES' {
-    $init_style = 'sles'
-  } elsif $::operatingsystem == 'Darwin' {
-    $init_style = 'launchd'
-  } elsif $::operatingsystem == 'Amazon' {
-    $init_style = 'sysv'
-  } else {
-    $init_style = undef
-  }
-  if $init_style == undef {
-    fail('Unsupported OS')
   }
 }

@@ -78,6 +78,14 @@ class consul::config(
           content => template('consul/consul.launchd.erb')
         }
       }
+      'windows' : {
+        include nssm
+
+        exec { 'nssm service install consul':
+          command => "nssm install consul \"${consul::bin_dir}\\consul.exe\" agent",
+          unless  => 'sc query consul'
+        }
+      }
       default : {
         fail("I don't know how to create an init script for style ${consul::init_style}")
       }

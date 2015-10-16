@@ -658,4 +658,19 @@ describe 'consul' do
   end
   # Service Stuff
 
+  context "On windows" do
+    let(:facts) {{
+        :operatingsystem => 'Windows',
+        :osfamily => 'Windows',
+        :kernel => 'windows'
+      }}
+
+      it { should contain_class('consul').with_init_style('windows') }
+      it { should contain_exec('nssm service install consul') }
+      it { should contain_file('C:\Program Files\Consul').with(:ensure => 'directory') }
+      it { should contain_class('consul').with_config_dir('C:\Program Files\Consul\etc') }
+      it { should contain_class('consul').with_bin_dir('C:\Program Files\Consul\bin') }
+
+  end
+
 end

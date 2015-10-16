@@ -2,5 +2,7 @@ fixtures:
   repositories:
     stdlib: "https://github.com/puppetlabs/puppetlabs-stdlib.git"
     staging: "https://github.com/nanliu/puppet-staging.git"
+    nssm: "https://github.com/opentable/puppet-nssm.git"
+    download_file: "https://github.com/puppet-community/puppet-download_file.git"
   symlinks:
     consul: "#{source_dir}"

@@ -54,7 +54,7 @@ class consul (
   $purge_config_dir      = true,
   $group                 = 'consul',
   $join_wan              = false,
-  $bin_dir               = '/usr/local/bin',
+  $bin_dir               = $consul::params::bin_dir,
   $arch                  = $consul::params::arch,
   $version               = $consul::params::version,
   $install_method        = $consul::params::install_method,
@@ -69,7 +69,7 @@ class consul (
   $ui_download_extension = $consul::params::ui_download_extension,
   $ui_package_name       = $consul::params::ui_package_name,
   $ui_package_ensure     = $consul::params::ui_package_ensure,
-  $config_dir            = '/etc/consul',
+  $config_dir            = $consul::params::config_dir,
   $extra_options         = '',
   $config_hash           = {},
   $config_defaults       = {},
@@ -120,6 +120,10 @@ class consul (
 
   if ($ui_dir and ! $data_dir) {
     warning('data_dir must be set to install consul web ui')
+  }
+
+  if ($install_method == 'package' and $::kernel == 'windows') {
+    fail('install_method=package is not supported on windows')
   }
 
   if ($config_hash_real['ports'] and $config_hash_real['ports']['rpc']) {
